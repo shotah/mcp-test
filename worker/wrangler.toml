@@ -1,0 +1,14 @@
+name = "mcp-server"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# Environment variables are loaded from .env file in development
+# In production, they're set via GitHub Actions secrets
+
+[observability]
+enabled = true
+
+# Production environment
+[env.production]
+# Variables are set via GitHub Actions secrets during deployment
+# No hardcoded values needed here
