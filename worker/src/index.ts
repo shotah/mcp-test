@@ -5,6 +5,56 @@ export interface Env {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
   OPENAI_API_KEY: string;
+  ALLOWED_ORIGINS?: string;
+}
+
+// Rate limiting storage
+const rateLimit = new Map();
+
+// Rate limiting function
+async function checkRateLimit(ip: string): Promise<boolean> {
+  const now = Date.now();
+  const window = 60000; // 1 minute
+  const limit = 10; // 10 requests per minute
+
+  if (!rateLimit.has(ip)) {
+    rateLimit.set(ip, []);
+  }
+
+  const requests = rateLimit.get(ip);
+  const recent = requests.filter((time: number) => now - time < window);
+
+  if (recent.length >= limit) {
+    return false;
+  }
+
+  recent.push(now);
+  rateLimit.set(ip, recent);
+  return true;
+}
+
+// Authentication validation function
+async function validateAuth(
+  request: Request,
+  supabase: any
+): Promise<string | null> {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.substring(7);
+
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
+    if (error || !user) return null;
+    return user.id;
+  } catch {
+    return null;
+  }
 }
 
 export default {
@@ -15,17 +65,48 @@ export default {
   ): Promise<Response> {
     const url = new URL(request.url);
     const method = request.method;
+    // Get client IP with better fallback handling
+    const getClientIP = (request: Request): string => {
+      // Try multiple headers in order of preference
+      const ip =
+        request.headers.get('CF-Connecting-IP') ||
+        request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+        request.headers.get('X-Real-IP') ||
+        request.headers.get('X-Client-IP');
 
-    // CORS headers
+      if (ip) return ip;
+
+      // Generate unique identifier for unknown IPs
+      // This ensures each unknown request gets its own rate limit
+      return (
+        'unknown-' +
+        Date.now() +
+        '-' +
+        Math.random().toString(36).substring(2, 11)
+      );
+    };
+
+    const clientIP = getClientIP(request);
+
+    // CORS headers - environment-specific domains
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Origin':
+        env.ALLOWED_ORIGINS || 'http://localhost:3000',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
 
     // Handle preflight requests
     if (method === 'OPTIONS') {
       return new Response(null, { status: 200, headers: corsHeaders });
+    }
+
+    // Rate limiting check
+    if (!(await checkRateLimit(clientIP))) {
+      return new Response('Rate limited', {
+        status: 429,
+        headers: corsHeaders,
+      });
     }
 
     try {
@@ -36,6 +117,18 @@ export default {
       const openai = new OpenAI({
         apiKey: env.OPENAI_API_KEY,
       });
+
+      // Authentication for protected endpoints
+      let userId: string | null = null;
+      if (['/chat', '/search'].includes(url.pathname)) {
+        userId = await validateAuth(request, supabase);
+        if (!userId) {
+          return new Response('Unauthorized', {
+            status: 401,
+            headers: corsHeaders,
+          });
+        }
+      }
 
       // Route handling
       switch (url.pathname) {
@@ -69,7 +162,7 @@ export default {
               headers: corsHeaders,
             });
           }
-          return handleChat(request, supabase, openai, corsHeaders);
+          return handleChat(request, supabase, openai, corsHeaders, userId!);
 
         default:
           return new Response('Not found', {
@@ -167,32 +260,56 @@ async function handleSearch(
   });
 }
 
+// Input validation function
+function validateInput(data: any): { valid: boolean; error?: string } {
+  if (!data.message || typeof data.message !== 'string') {
+    return { valid: false, error: 'Invalid message' };
+  }
+
+  if (data.message.length > 1000) {
+    return { valid: false, error: 'Message too long' };
+  }
+
+  // Check for malicious content
+  if (
+    data.message.includes('<script>') ||
+    data.message.includes('javascript:')
+  ) {
+    return { valid: false, error: 'Invalid content' };
+  }
+
+  return { valid: true };
+}
+
 async function handleChat(
   request: Request,
   supabase: any,
   openai: OpenAI,
-  corsHeaders: Record<string, string>
+  corsHeaders: Record<string, string>,
+  userId: string
 ): Promise<Response> {
-  const { message, sessionId, userId } = (await request.json()) as {
+  const { message, sessionId } = (await request.json()) as {
     message: string;
     sessionId: string;
-    userId: string;
   };
 
-  if (!message) {
-    return new Response(JSON.stringify({ error: 'Message is required' }), {
+  // Validate input
+  const validation = validateInput({ message });
+  if (!validation.valid) {
+    return new Response(JSON.stringify({ error: validation.error }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
-  // Get or create session
+  // Get or create session (using authenticated userId)
   let session;
   if (sessionId) {
     const { data } = await supabase
       .from('chat_sessions')
       .select('*')
       .eq('id', sessionId)
+      .eq('user_id', userId) // Ensure user owns the session
       .single();
     session = data;
   } else {

@@ -206,6 +206,7 @@ make health
 - [SUPABASE_SETUP.md](SUPABASE_SETUP.md) - Supabase cloud setup guide
 - [OPENAI_SETUP.md](OPENAI_SETUP.md) - OpenAI API setup with cost-effective options
 - [RAG_ARCHITECTURE.md](RAG_ARCHITECTURE.md) - RAG & Context Engineering architecture
+- [SECURITY_ANALYSIS.md](SECURITY_ANALYSIS.md) - Security analysis and recommendations
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Environment variables and deployment guide
 - [Supabase Docs](https://supabase.com/docs)
 - [Cloudflare Workers](https://developers.cloudflare.com/workers/)
