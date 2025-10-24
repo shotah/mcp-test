@@ -203,7 +203,7 @@ If you don't know the answer based on the context, say so. Be helpful and accura
       try {
         let functionResult = '';
         switch (handler) {
-          case 'getUsers':
+          case 'getUsers': {
             const { data: userSessions } = await supabase
               .from('chat_sessions')
               .select('user_id')
@@ -217,8 +217,9 @@ If you don't know the answer based on the context, say so. Be helpful and accura
               uniqueUsers.length
             } unique users: ${uniqueUsers.slice(0, 10).join(', ')}`;
             break;
+          }
 
-          case 'getSessions':
+          case 'getSessions': {
             const { data: sessions } = await supabase
               .from('chat_sessions')
               .select('id, title, user_id, created_at')
@@ -236,8 +237,9 @@ If you don't know the answer based on the context, say so. Be helpful and accura
                 .join('\n') || 'No sessions found'
             }`;
             break;
+          }
 
-          case 'getMessages':
+          case 'getMessages': {
             const { data: messages } = await supabase
               .from('chat_messages')
               .select('id, session_id, role, content, created_at')
@@ -259,8 +261,9 @@ If you don't know the answer based on the context, say so. Be helpful and accura
                 .join('\n') || 'No messages found'
             }`;
             break;
+          }
 
-          case 'getStats':
+          case 'getStats': {
             const { data: sessionCount } = await supabase
               .from('chat_sessions')
               .select('id', { count: 'exact' });
@@ -273,6 +276,7 @@ If you don't know the answer based on the context, say so. Be helpful and accura
               sessionCount?.length || 0
             }\n- Total Messages: ${messageCount?.length || 0}`;
             break;
+          }
         }
 
         // Send the query result back to GPT for proper processing
