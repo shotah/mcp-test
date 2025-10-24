@@ -1,129 +1,155 @@
-import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { LogIn, LogOut, MessageSquare, Send } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js';
+import { LogIn, LogOut, MessageSquare, Send } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
-const workerUrl = import.meta.env.VITE_WORKER_URL || 'http://localhost:8787'
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
+const supabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
+const workerUrl = import.meta.env.VITE_WORKER_URL || 'http://localhost:8787';
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  created_at: string
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
 }
 
 interface ChatSession {
-  id: string
-  title: string
-  created_at: string
+  id: string;
+  title: string;
+  created_at: string;
 }
 
 function App() {
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [sessions, setSessions] = useState<ChatSession[]>([])
-  const [currentSession, setCurrentSession] = useState<string | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [sending, setSending] = useState(false)
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [currentSession, setCurrentSession] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          loadSessions()
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadSessions();
       }
-    )
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => subscription.unsubscribe();
+  }, []);
 
   const loadSessions = async () => {
     const { data } = await supabase
       .from('chat_sessions')
       .select('*')
-      .order('created_at', { ascending: false })
-    
-    setSessions(data || [])
-  }
+      .order('created_at', { ascending: false });
+
+    setSessions(data || []);
+  };
 
   const loadMessages = async (sessionId: string) => {
     const { data } = await supabase
       .from('chat_messages')
       .select('*')
       .eq('session_id', sessionId)
-      .order('created_at', { ascending: true })
-    
-    setMessages(data || [])
-  }
+      .order('created_at', { ascending: true });
+
+    setMessages(data || []);
+  };
 
   const signIn = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: window.location.origin
-      }
-    })
-    if (error) console.error('Error:', error)
-  }
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) console.error('Error:', error);
+  };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) console.error('Error:', error)
-  }
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Error:', error);
+  };
 
   const sendMessage = async () => {
-    if (!input.trim() || sending) return
+    if (!input.trim() || sending) return;
 
-    setSending(true)
-    const userMessage = input
-    setInput('')
+    console.log('🚀 Starting sendMessage...');
+    setSending(true);
+    const userMessage = input;
+    setInput('');
 
     // Add user message to UI immediately
     const tempUserMessage: Message = {
       id: `temp-${Date.now()}`,
       role: 'user',
       content: userMessage,
-      created_at: new Date().toISOString()
-    }
-    setMessages(prev => [...prev, tempUserMessage])
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, tempUserMessage]);
 
     try {
+      console.log('📡 Making request to:', `${workerUrl}/chat`);
+      console.log('👤 User:', user?.id);
+      console.log('💬 Message:', userMessage);
+
+      const session = await supabase.auth.getSession();
+      console.log(
+        '🔑 Auth session:',
+        session.data.session ? 'Authenticated' : 'Not authenticated'
+      );
+
       const response = await fetch(`${workerUrl}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          Authorization: `Bearer ${session.data.session?.access_token}`,
         },
         body: JSON.stringify({
           message: userMessage,
           sessionId: currentSession,
-          userId: user?.id
-        })
-      })
+          userId: user?.id,
+        }),
+      });
+
+      console.log('📨 Response status:', response.status);
+      console.log(
+        '📨 Response headers:',
+        Object.fromEntries(response.headers.entries())
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to send message')
+        const errorText = await response.text();
+        console.error('❌ Response error:', errorText);
+        throw new Error(
+          `Failed to send message: ${response.status} ${errorText}`
+        );
       }
 
-      const { response: assistantMessage, sessionId } = await response.json()
-      
+      const responseData = await response.json();
+      console.log('✅ Response data:', responseData);
+
+      const { response: assistantMessage, sessionId } = responseData;
+
       // Update current session if it's new
       if (!currentSession) {
-        setCurrentSession(sessionId)
-        loadSessions()
+        setCurrentSession(sessionId);
+        loadSessions();
       }
 
       // Add assistant message to UI
@@ -131,23 +157,38 @@ function App() {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
         content: assistantMessage,
-        created_at: new Date().toISOString()
-      }
-      setMessages(prev => [...prev, assistantMsg])
-
+        created_at: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
     } catch (error) {
-      console.error('Error sending message:', error)
+      console.error('❌ Error sending message:', error);
       // Remove the temporary user message on error
-      setMessages(prev => prev.filter(msg => msg.id !== tempUserMessage.id))
+      setMessages((prev) =>
+        prev.filter((msg) => msg.id !== tempUserMessage.id)
+      );
     } finally {
-      setSending(false)
+      console.log('🏁 sendMessage completed');
+      setSending(false);
     }
-  }
+  };
 
   const startNewChat = () => {
-    setCurrentSession(null)
-    setMessages([])
-  }
+    setCurrentSession(null);
+    setMessages([]);
+  };
+
+  const testWorkerConnection = async () => {
+    try {
+      console.log('🧪 Testing worker connection...');
+      const response = await fetch(`${workerUrl}/debug`);
+      const data = await response.json();
+      console.log('✅ Worker debug info:', data);
+      alert(`Worker debug info: ${JSON.stringify(data, null, 2)}`);
+    } catch (error) {
+      console.error('❌ Worker health check failed:', error);
+      alert(`Worker connection failed: ${error}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -157,7 +198,7 @@ function App() {
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user) {
@@ -166,7 +207,9 @@ function App() {
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
           <div className="text-center">
             <MessageSquare className="h-12 w-12 text-primary-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to MCP Chat</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Welcome to MCP Chat
+            </h1>
             <p className="text-gray-600 mb-6">
               Sign in to start chatting with AI powered by your documents
             </p>
@@ -180,7 +223,7 @@ function App() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -194,6 +237,12 @@ function App() {
               <h1 className="text-xl font-semibold text-gray-900">MCP Chat</h1>
             </div>
             <div className="flex items-center gap-4">
+              <button
+                onClick={testWorkerConnection}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Test Worker
+              </button>
               <button
                 onClick={startNewChat}
                 className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -223,8 +272,8 @@ function App() {
                   <button
                     key={session.id}
                     onClick={() => {
-                      setCurrentSession(session.id)
-                      loadMessages(session.id)
+                      setCurrentSession(session.id);
+                      loadMessages(session.id);
                     }}
                     className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
                       currentSession === session.id
@@ -253,7 +302,11 @@ function App() {
                   messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      className={`flex ${
+                        message.role === 'user'
+                          ? 'justify-end'
+                          : 'justify-start'
+                      }`}
                     >
                       <div
                         className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
@@ -305,7 +358,7 @@ function App() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

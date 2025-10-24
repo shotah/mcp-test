@@ -4,7 +4,7 @@
   "description": "MCP Server running on Cloudflare Workers",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --log-level debug",
     "deploy": "wrangler deploy",
     "build": "wrangler deploy --dry-run",
     "test": "vitest",
@@ -23,7 +23,7 @@
     "eslint": "^8.53.0",
     "typescript": "^5.3.0",
     "vitest": "^1.0.0",
-    "wrangler": "^3.19.0"
+    "wrangler": "^4.45.0"
   },
   "engines": {
     "node": ">=18.0.0"

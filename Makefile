@@ -1,6 +1,12 @@
-# MCP Test - Makefile
-# Multi-service project with Supabase, Cloudflare Workers, and React
-# Windows-compatible version
+.SILENT: # Disable echo of commands
+ifneq ("$(wildcard .env)", "")
+# Import .env file if it exists
+# MAKE SURE THIS IS SPACES AND NOT A TAB
+    include .env
+endif
+
+SHELL := /bin/bash
+
 
 .PHONY: help install setup dev build test lint clean deploy docker-up docker-down
 
@@ -118,10 +124,6 @@ dev: ## Start all development services
 	@echo "$(YELLOW)Starting Supabase, Worker, and Web App$(NC)"
 	@npm run dev
 
-dev-supabase: ## Start only Supabase
-	@echo "$(BLUE)Starting Supabase...$(NC)"
-	@npm run dev:supabase
-
 dev-worker: ## Start only Cloudflare Worker
 	@echo "$(BLUE)Starting Cloudflare Worker...$(NC)"
 	@npm run dev:worker
@@ -214,55 +216,44 @@ push: deploy ## Alias for deploy
 supabase-link: ## Link to Supabase cloud project
 	@echo "$(BLUE)Linking to Supabase cloud project...$(NC)"
 	@echo "$(YELLOW)You'll need your project reference ID from the Supabase dashboard$(NC)"
-	@supabase link
+	@npx supabase link
 	@echo "$(GREEN)✓ Project linked$(NC)"
 
 supabase-push: ## Push schema to Supabase cloud
 	@echo "$(BLUE)Pushing schema to Supabase cloud...$(NC)"
-	@supabase db push
+	@npx supabase db push
 	@echo "$(GREEN)✓ Schema pushed$(NC)"
 
 supabase-pull: ## Pull schema from Supabase cloud
 	@echo "$(BLUE)Pulling schema from Supabase cloud...$(NC)"
-	@supabase db pull
+	@npx supabase db pull
 	@echo "$(GREEN)✓ Schema pulled$(NC)"
 
 supabase-diff: ## Show schema differences
 	@echo "$(BLUE)Showing schema differences...$(NC)"
-	@supabase db diff
-
-# Supabase Commands
-supabase-start: ## Start Supabase locally
-	@echo "$(BLUE)Starting Supabase...$(NC)"
-	@supabase start
-	@echo "$(GREEN)✓ Supabase started$(NC)"
-
-supabase-stop: ## Stop Supabase
-	@echo "$(BLUE)Stopping Supabase...$(NC)"
-	@supabase stop
-	@echo "$(GREEN)✓ Supabase stopped$(NC)"
+	@npx supabase db diff
 
 supabase-reset: ## Reset Supabase database
 	@echo "$(BLUE)Resetting Supabase database...$(NC)"
-	@supabase db reset
+	@npx supabase db reset
 	@echo "$(GREEN)✓ Supabase database reset$(NC)"
 
 supabase-status: ## Check Supabase status
 	@echo "$(BLUE)Checking Supabase status...$(NC)"
-	@supabase status
+	@npx supabase status
 
 # Database Commands
 db-migrate: supabase-push ## Run database migrations (alias for supabase-push)
 
 db-seed: ## Seed database with sample data
 	@echo "$(BLUE)Seeding database...$(NC)"
-	@supabase db seed
+	@npx supabase db seed
 	@echo "$(GREEN)✓ Database seeded$(NC)"
 
 db-reset: ## Reset database (cloud)
 	@echo "$(BLUE)Resetting database...$(NC)"
 	@echo "$(YELLOW)This will reset your cloud database!$(NC)"
-	@supabase db reset --linked
+	@npx supabase db reset --linked
 	@echo "$(GREEN)✓ Database reset$(NC)"
 
 # Utilities
@@ -297,7 +288,7 @@ status: ## Show project status
 	@docker-compose ps
 	@echo ""
 	@echo "$(GREEN)Supabase:$(NC)"
-	@supabase status || echo "$(YELLOW)Supabase not running$(NC)"
+	@npx supabase status || echo "$(YELLOW)Supabase not running$(NC)"
 	@echo ""
 	@echo "$(GREEN)Worker:$(NC)"
 ifeq ($(DETECTED_OS),Windows)

@@ -4,7 +4,7 @@
   "description": "MCP Server with Supabase and Cloudflare Workers",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:supabase\" \"npm run dev:worker\" \"npm run dev:web\"",
+    "dev": "concurrently \"npm run dev:worker\" \"npm run dev:web\"",
     "dev:supabase": "docker-compose up supabase",
     "dev:worker": "cd worker && npm run dev",
     "dev:web": "cd web && npm run dev",
