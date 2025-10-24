@@ -8,11 +8,6 @@ export function getCorsHeaders(
   env: Env
 ): Record<string, string> {
   const requestOrigin = request.headers.get('Origin');
-  console.log('🔧 CORS Debug:', {
-    requestOrigin,
-    allowedOrigins: env.ALLOWED_ORIGINS,
-    envKeys: Object.keys(env)
-  });
   const allowedOrigins = (env.ALLOWED_ORIGINS || 'http://localhost:3000').split(
     ','
   );
