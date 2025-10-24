@@ -11,4 +11,11 @@ enabled = true
 # Production environment
 [env.production]
 # Variables are set via GitHub Actions secrets during deployment
-# No hardcoded values needed here
+# These need to be declared here so Wrangler knows to pass them to the worker
+[vars]
+ALLOWED_ORIGINS = ""
+SUPABASE_URL = ""
+SUPABASE_ANON_KEY = ""
+OPENAI_API_KEY = ""
+OPENAI_EMBEDDING_MODEL = ""
+OPENAI_CHAT_MODEL = ""
