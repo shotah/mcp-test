@@ -46,7 +46,7 @@ Add these secrets to your GitHub repository (Settings → Secrets and variables 
 | `OPENAI_API_KEY` | Your OpenAI API key | `sk-...` |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token | `your-token` |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID | `your-account-id` |
-| `WORKER_URL` | Your deployed worker URL | `https://mcp-server.your-subdomain.workers.dev` |
+| `WORKER_URL` | Your deployed worker URL | `https://mcp-server-production.your-subdomain.workers.dev` |
 
 ## Development vs Production
 

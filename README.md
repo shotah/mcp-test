@@ -122,20 +122,23 @@ ALLOWED_ORIGINS=https://your-project.pages.dev,https://mcptest.bldhosting.com
 
 ### GitHub Actions Setup
 
-1. Add secrets to your GitHub repository:
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ACCOUNT_ID`
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `OPENAI_API_KEY`
-   - `ALLOWED_ORIGINS`
-   - `OPENAI_EMBEDDING_MODEL` (optional)
-   - `OPENAI_CHAT_MODEL` (optional)
+1. **Add secrets to your GitHub repository** (Settings → Secrets and variables → Actions):
+   - `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token
+   - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
+   - `SUPABASE_URL` - Your Supabase project URL
+   - `SUPABASE_ANON_KEY` - Your Supabase anon key
+   - `OPENAI_API_KEY` - Your OpenAI API key
+   - `WORKER_URL` - Your deployed worker URL (e.g., `https://mcp-server-production.your-subdomain.workers.dev`)
+   - `ALLOWED_ORIGINS` - Comma-separated list of allowed domains (e.g., `https://mcp-web.pages.dev,https://mcp.bldhosting.com`)
+   - `OPENAI_EMBEDDING_MODEL` (optional) - Default: `text-embedding-3-small`
+   - `OPENAI_CHAT_MODEL` (optional) - Default: `gpt-5-nano`
 
-2. Push to main branch:
+2. **Push to main branch** to trigger deployment:
    ```bash
    git push origin main
    ```
+
+3. **Monitor deployment** in the Actions tab of your GitHub repository
 
 ### Manual Deployment
 
@@ -157,7 +160,7 @@ The project uses GitHub Actions for automatic deployment:
 - **Worker**: Deploys to Cloudflare Workers
 - **Web App**: Deploys to Cloudflare Pages
 - **Quality Checks**: TypeScript + ESLint + Build validation
-- **Environment**: Automatic worker URL construction
+- **Environment**: Worker URL from GitHub secrets
 
 ## 🧪 Testing
 

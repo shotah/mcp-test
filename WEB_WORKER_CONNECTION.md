@@ -78,7 +78,7 @@ OPENAI_API_KEY=sk-your-openai-key-here
 ALLOWED_ORIGINS=https://mcp-test.pages.dev,https://mcptest.bldhosting.com
 
 # Required for web app to find worker
-WORKER_URL=https://your-worker.your-subdomain.workers.dev
+WORKER_URL=https://mcp-server-production.your-subdomain.workers.dev
 ```
 
 ### **6. Connection Example**
@@ -147,7 +147,7 @@ npm run dev  # Runs on http://localhost:3000
 ```bash
 # 1. Set GitHub secrets
 ALLOWED_ORIGINS=https://mcp-test.pages.dev,https://mcptest.bldhosting.com
-WORKER_URL=https://your-worker.your-subdomain.workers.dev
+WORKER_URL=https://mcp-server-production.your-subdomain.workers.dev
 
 # 2. Push to main branch
 git push origin main
