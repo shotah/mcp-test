@@ -94,7 +94,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: mcp-web
           directory: web/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   test:
     runs-on: ubuntu-latest
