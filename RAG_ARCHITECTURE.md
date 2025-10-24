@@ -147,7 +147,7 @@ If you don't know the answer based on the context, say so. Be helpful and accura
   
   // 5. Generate response with context
   const completion = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-5-nano',
     messages: [systemMessage, ...chatHistory, { role: 'user', content: message }],
     max_tokens: 1000,
     temperature: 0.7,
@@ -320,7 +320,7 @@ const { data: relevantDocs } = await supabase.rpc('search_documents', {
 model: 'text-embedding-ada-002'
 
 // Chat model
-model: 'gpt-3.5-turbo'
+model: 'gpt-5-nano'
 ```
 
 ## 🎯 RAG Use Cases

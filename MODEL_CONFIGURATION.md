@@ -11,7 +11,7 @@ Your MCP setup now supports configurable OpenAI models via environment variables
 OPENAI_EMBEDDING_MODEL=text-embedding-ada-002
 
 # Chat model for responses  
-OPENAI_CHAT_MODEL=gpt-3.5-turbo
+OPENAI_CHAT_MODEL=gpt-5-nano
 ```
 
 ## 💰 **Model Cost Comparison**

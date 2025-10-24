@@ -12,7 +12,7 @@ insert into documents (title, content, metadata) values
 ),
 (
   'OpenAI API Integration',
-  'The OpenAI API provides access to powerful language models like GPT-4, GPT-3.5-turbo, and text-embedding-ada-002 for various AI applications.',
+  'The OpenAI API provides access to powerful language models like GPT-4, gpt-5-nano, and text-embedding-ada-002 for various AI applications.',
   '{"category": "documentation", "tags": ["openai", "ai", "gpt", "embeddings"]}'
 ),
 (
