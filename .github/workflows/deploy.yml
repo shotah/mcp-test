@@ -2,10 +2,18 @@ name: Deploy to Cloudflare
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
-
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
+        type: string
 jobs:
   deploy-worker:
     runs-on: ubuntu-latest
@@ -34,7 +42,7 @@ jobs:
         id: deploy-worker
         run: |
           echo "Deploying worker..."
-          npx wrangler deploy --prefix worker --env production
+          npx wrangler deploy --cwd worker --env production
           echo "Worker deployed successfully"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
