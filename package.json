@@ -15,6 +15,13 @@
     "build": "npm run build:worker && npm run build:web",
     "build:worker": "cd worker && npm run build",
     "build:web": "cd web && npm run build",
+    "lint": "npm run lint:worker && npm run lint:web",
+    "lint:worker": "cd worker && npm run lint",
+    "lint:web": "cd web && npm run lint",
+    "type-check": "npm run type-check:worker && npm run type-check:web",
+    "type-check:worker": "cd worker && npm run type-check",
+    "type-check:web": "cd web && npm run type-check",
+    "check": "npm run type-check && npm run lint && npm run build",
     "deploy": "npm run deploy:worker && npm run deploy:web",
     "deploy:worker": "cd worker && npm run deploy",
     "deploy:web": "cd web && npm run build"

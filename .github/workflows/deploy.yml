@@ -24,6 +24,12 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefix worker
 
+      - name: Type check
+        run: npm run type-check --prefix worker
+
+      - name: Lint
+        run: npm run lint --prefix worker
+
       - name: Deploy Worker
         id: deploy-worker
         run: |
@@ -37,6 +43,8 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+          OPENAI_EMBEDDING_MODEL: ${{ secrets.OPENAI_EMBEDDING_MODEL }}
+          OPENAI_CHAT_MODEL: ${{ secrets.OPENAI_CHAT_MODEL }}
 
   deploy-web:
     runs-on: ubuntu-latest
@@ -55,6 +63,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --prefix web
+
+      - name: Type check
+        run: npm run type-check --prefix web
+
+      - name: Lint
+        run: npm run lint --prefix web
 
       - name: Build
         run: npm run build --prefix web
@@ -97,4 +111,6 @@ jobs:
           npm run type-check --prefix web
 
       - name: Lint
-        run: npm run lint --prefix web
+        run: |
+          npm run lint --prefix worker
+          npm run lint --prefix web

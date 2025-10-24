@@ -6,6 +6,8 @@ export interface Env {
   SUPABASE_ANON_KEY: string;
   OPENAI_API_KEY: string;
   ALLOWED_ORIGINS?: string;
+  OPENAI_EMBEDDING_MODEL?: string;
+  OPENAI_CHAT_MODEL?: string;
 }
 
 // Rate limiting storage
@@ -144,7 +146,7 @@ export default {
               headers: corsHeaders,
             });
           }
-          return handleEmbed(request, openai, corsHeaders);
+          return handleEmbed(request, openai, corsHeaders, env);
 
         case '/search':
           if (method !== 'POST') {
@@ -153,7 +155,7 @@ export default {
               headers: corsHeaders,
             });
           }
-          return handleSearch(request, supabase, openai, corsHeaders);
+          return handleSearch(request, supabase, openai, corsHeaders, env);
 
         case '/chat':
           if (method !== 'POST') {
@@ -162,7 +164,14 @@ export default {
               headers: corsHeaders,
             });
           }
-          return handleChat(request, supabase, openai, corsHeaders, userId!);
+          return handleChat(
+            request,
+            supabase,
+            openai,
+            corsHeaders,
+            userId!,
+            env
+          );
 
         default:
           return new Response('Not found', {
@@ -189,7 +198,8 @@ export default {
 async function handleEmbed(
   request: Request,
   openai: OpenAI,
-  corsHeaders: Record<string, string>
+  corsHeaders: Record<string, string>,
+  env: Env
 ): Promise<Response> {
   const { text } = (await request.json()) as { text: string };
 
@@ -201,7 +211,7 @@ async function handleEmbed(
   }
 
   const embedding = await openai.embeddings.create({
-    model: 'text-embedding-ada-002',
+    model: env.OPENAI_EMBEDDING_MODEL || 'text-embedding-ada-002',
     input: text,
   });
 
@@ -219,7 +229,8 @@ async function handleSearch(
   request: Request,
   supabase: any,
   openai: OpenAI,
-  corsHeaders: Record<string, string>
+  corsHeaders: Record<string, string>,
+  env: Env
 ): Promise<Response> {
   const {
     query,
@@ -240,7 +251,7 @@ async function handleSearch(
 
   // Generate embedding for the query
   const embedding = await openai.embeddings.create({
-    model: 'text-embedding-ada-002',
+    model: env.OPENAI_EMBEDDING_MODEL || 'text-embedding-ada-002',
     input: query,
   });
 
@@ -286,7 +297,8 @@ async function handleChat(
   supabase: any,
   openai: OpenAI,
   corsHeaders: Record<string, string>,
-  userId: string
+  userId: string,
+  env: Env
 ): Promise<Response> {
   const { message, sessionId } = (await request.json()) as {
     message: string;
@@ -333,7 +345,7 @@ async function handleChat(
 
   // Search for relevant documents
   const embedding = await openai.embeddings.create({
-    model: 'text-embedding-ada-002',
+    model: env.OPENAI_EMBEDDING_MODEL || 'text-embedding-ada-002',
     input: message,
   });
 
@@ -370,7 +382,7 @@ If you don't know the answer based on the context, say so. Be helpful and accura
 
   // Get response from OpenAI
   const completion = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
+    model: env.OPENAI_CHAT_MODEL || 'gpt-3.5-turbo',
     messages: chatMessages as any,
     max_tokens: 1000,
     temperature: 0.7,
