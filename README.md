@@ -98,9 +98,16 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 # OpenAI
 OPENAI_API_KEY=sk-your-openai-key
 
+# OpenAI Models (optional)
+OPENAI_EMBEDDING_MODEL=text-embedding-ada-002
+OPENAI_CHAT_MODEL=gpt-4o-mini
+
 # Cloudflare (production)
 CLOUDFLARE_API_TOKEN=your-token
 CLOUDFLARE_ACCOUNT_ID=your-account-id
+
+# CORS Configuration (production)
+ALLOWED_ORIGINS=https://your-project.pages.dev,https://mcptest.bldhosting.com
 ```
 
 ### Supabase Setup
@@ -120,7 +127,10 @@ CLOUDFLARE_ACCOUNT_ID=your-account-id
    - `CLOUDFLARE_ACCOUNT_ID`
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
-   - `WORKER_URL`
+   - `OPENAI_API_KEY`
+   - `ALLOWED_ORIGINS`
+   - `OPENAI_EMBEDDING_MODEL` (optional)
+   - `OPENAI_CHAT_MODEL` (optional)
 
 2. Push to main branch:
    ```bash
@@ -139,6 +149,15 @@ cd web
 npm run build
 # Upload dist/ to Cloudflare Pages
 ```
+
+### Automatic Deployment
+
+The project uses GitHub Actions for automatic deployment:
+
+- **Worker**: Deploys to Cloudflare Workers
+- **Web App**: Deploys to Cloudflare Pages
+- **Quality Checks**: TypeScript + ESLint + Build validation
+- **Environment**: Automatic worker URL construction
 
 ## 🧪 Testing
 
@@ -172,13 +191,21 @@ curl -X POST http://localhost:8787/search \
 - `chat_sessions` - Chat conversation sessions
 - `chat_messages` - Individual chat messages
 
-## 🔐 Authentication
+## 🔐 Authentication & Security
 
 The app uses Supabase Auth with GitHub OAuth:
 
 1. Users sign in with GitHub
 2. JWT tokens are used for API authentication
 3. Row Level Security (RLS) protects user data
+
+### Security Features
+
+- **JWT Authentication**: All protected endpoints require valid tokens
+- **Rate Limiting**: 10 requests per minute per IP
+- **Input Validation**: XSS protection and length limits
+- **CORS Protection**: Restricted to allowed origins
+- **User Isolation**: Users can only access their own data
 
 ## 🛠️ Development
 
@@ -187,6 +214,24 @@ The app uses Supabase Auth with GitHub OAuth:
 1. **Database**: Add migrations to `supabase/migrations/`
 2. **Worker**: Add endpoints to `worker/src/index.ts`
 3. **Frontend**: Add components to `web/src/`
+
+### Development Commands
+
+```bash
+# Setup everything
+npm run setup
+
+# Development
+npm run dev              # All services
+npm run dev:worker       # Worker only
+npm run dev:web          # Web app only
+
+# Quality checks
+npm run type-check       # TypeScript checking
+npm run lint             # ESLint checking
+npm run build            # Build everything
+npm run check            # All quality checks
+```
 
 ### Local Testing
 
@@ -201,13 +246,33 @@ make dev-web
 make health
 ```
 
+### Code Quality
+
+```bash
+# Type check everything
+npm run type-check
+
+# Lint everything
+npm run lint
+
+# Build everything
+npm run build
+
+# Check everything (type + lint + build)
+npm run check
+```
+
 ## 📖 Documentation
 
 - [SUPABASE_SETUP.md](SUPABASE_SETUP.md) - Supabase cloud setup guide
 - [OPENAI_SETUP.md](OPENAI_SETUP.md) - OpenAI API setup with cost-effective options
+- [MODEL_CONFIGURATION.md](MODEL_CONFIGURATION.md) - Configurable OpenAI models with real pricing
 - [RAG_ARCHITECTURE.md](RAG_ARCHITECTURE.md) - RAG & Context Engineering architecture
 - [SECURITY_ANALYSIS.md](SECURITY_ANALYSIS.md) - Security analysis and recommendations
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Environment variables and deployment guide
+- [CLOUDFLARE_DEPLOYMENT.md](CLOUDFLARE_DEPLOYMENT.md) - Cloudflare deployment guide
+- [WEB_WORKER_CONNECTION.md](WEB_WORKER_CONNECTION.md) - How web app connects to worker
+- [DOMAIN_OPTIONS.md](DOMAIN_OPTIONS.md) - Domain configuration options
 - [Supabase Docs](https://supabase.com/docs)
 - [Cloudflare Workers](https://developers.cloudflare.com/workers/)
 - [OpenAI API](https://platform.openai.com/docs)
@@ -217,8 +282,33 @@ make health
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test locally
-5. Submit a pull request
+4. Run quality checks: `npm run check`
+5. Test locally: `npm run dev`
+6. Submit a pull request
+
+### Development Workflow
+
+```bash
+# 1. Setup
+git clone <your-fork>
+cd mcp-test
+npm run setup
+
+# 2. Development
+npm run dev
+
+# 3. Quality checks
+npm run check
+
+# 4. Test
+npm run dev:worker
+npm run dev:web
+
+# 5. Commit
+git add .
+git commit -m "feat: your changes"
+git push origin your-branch
+```
 
 ## 📄 License
 
