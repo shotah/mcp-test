@@ -30,6 +30,6 @@
     "concurrently": "^8.2.2"
   },
   "dependencies": {
-    "supabase": "^2.53.6"
+    "supabase": "^2.72.8"
   }
 }
